@@ -8,21 +8,30 @@
 *** Working principle
 
  We assume that we can represent the river channel profile for a specific SWOT overpass (i.e. snapshot) as a steady-state system that can be modeled using the Gradually-Varied Flow equations (Chow, 1955). The general form of these equations is
- $$\frac{dy}{dx} = \frac{S_{0}-S_{f}}{1-Fr^{2}}$$
- where $S_{0}$ is the bed slope, $S_{f}$ is the friction slope, y is the water depth, x is the longitudinal distance, and Fr is the Froude number. The friction slope can be approximated by the Manning equation
- $$S_{f} = \frac{n^{2} Q^{2}}{A^{2} R^{4/3}}$$
+
+dy/dx = (S0 - Sf) / (1 - Fr^2)
+
+ where S0 is the bed slope, Sf is the friction slope, y is the water depth, x is the longitudinal distance, and Fr is the Froude number. The friction slope can be approximated by the Manning equation
+
+ Sf = (n^2 Q^2) / (A^2 R^(4/3))
+
  where n is the Manning roughness coefficient, Q is discharge, A is the cross-sectional flow area, and R is the hydraulic radius. 
  The equations can be solved as a single or a system of ordinary differential equations (ODE), with the latter being necessary if an entire river network is being solved (Islam et al., 2005).
 
  Using prior distributions for the different parameters in the model along with boundary conditions, an a-priori estimate of discharge can be acquired. The SWOT observables can then be assimilated into this prior model in order to derive the posterior distribution of discharge for the observed river reaches. The assimilation algorithm that will be used is the Local Ensemble Transform Kalman Filter (LETKF) that can be implemented efficiently over large areas and has been shown to be superior to other Kalman Filter algorithms partly due to its explicit localization (Hunt et al., 2007).
 
  Let $x$ be the state variable (i.e. discharge) that forms an ensemble; the posterior estimate can calculated as
- $$x^{a} = x^{b} + X^{b} P^{a} M^{b~T} R^{-1} (m^{o} - m^{b})$$
- where $P^{a}$ is the posterior model error covariance in the ensemble space, $X^{b}$ are the prior ensemble perturbations of the state variable, $M^{b}$ is similar to $X^{b}$ but for the model-predicted measurements, $m^{o}$ are SWOT measurements, $m^{b}$ are the model-predicted measurements, and $R$ is the measurement error covariance matrix.
- The matrix $P^{a}$ can be written as 
- $$P^{a} = [Y^{b~T} R^{-1} Y^{b} + (k-1)I]^{-1}$$
+
+xa = xb + Xb Pa Mb^T R^-1 (mo - mb)
+
+ where Pa is the posterior model error covariance in the ensemble space, Xb are the prior ensemble perturbations of the state variable, Mb is similar to Xb but for the model-predicted measurements, mo are SWOT measurements, mb are the model-predicted measurements, and R is the measurement error covariance matrix.
+ The matrix $P^{a}$ can be written as
+ 
+ Pa = [Yb^T R^-1 Yb + (k-1) I]^-1
+
  while the posterior ensemble perturbations are given by 
- $$X^{a} = X^{b} [(k-1) P^{a}]^{1/2}$$
+
+ Xa = Xb [(k-1) Pa]^(1/2)
 
 *** Data requirements
  SADS operates on either SWOT reaches or nodes, and requires reach-averaged height, and optionally width, and slope, along with estimates of the uncertainties of each. It also requires an estimate of the prior distribution of the mean annual flow (Q), roughness coefficient (n), bankfull depth (z) and width (w). The prior flow is used for defining the boundary conditions for the GVF model.
