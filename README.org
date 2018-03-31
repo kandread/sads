@@ -1,0 +1,53 @@
+* Discharge Algorithm in SWOT Data Products: SADS
+
+** Introduction
+ The purpose of this document is to provide a (very) succinct description of SWOT Assimilated DiScharge (SADS): a SWOT-based discharge estimation method, its algorithm flow, inputs, outputs, parameters, computing and personnel requirements, and operational plan.
+
+** Method description
+
+*** Working principle
+
+ We assume that we can represent the river channel profile for a specific SWOT overpass (i.e. snapshot) as a steady-state system that can be modeled using the Gradually-Varied Flow equations (Chow, 1955). The general form of these equations is
+ $$\frac{dy}{dx} = \frac{S_{0}-S_{f}}{1-Fr^{2}}$$
+ where $S_{0}$ is the bed slope, $S_{f}$ is the friction slope, y is the water depth, x is the longitudinal distance, and Fr is the Froude number. The friction slope can be approximated by the Manning equation
+ $$S_{f} = \frac{n^{2} Q^{2}}{A^{2} R^{4/3}}$$
+ where n is the Manning roughness coefficient, Q is discharge, A is the cross-sectional flow area, and R is the hydraulic radius. 
+ The equations can be solved as a single or a system of ordinary differential equations (ODE), with the latter being necessary if an entire river network is being solved (Islam et al., 2005).
+
+ Using prior distributions for the different parameters in the model along with boundary conditions, an a-priori estimate of discharge can be acquired. The SWOT observables can then be assimilated into this prior model in order to derive the posterior distribution of discharge for the observed river reaches. The assimilation algorithm that will be used is the Local Ensemble Transform Kalman Filter (LETKF) that can be implemented efficiently over large areas and has been shown to be superior to other Kalman Filter algorithms partly due to its explicit localization (Hunt et al., 2007).
+
+ Let $x$ be the state variable (i.e. discharge) that forms an ensemble; the posterior estimate can calculated as
+ $$x^{a} = x^{b} + X^{b} P^{a} M^{b~T} R^{-1} (m^{o} - m^{b})$$
+ where $P^{a}$ is the posterior model error covariance in the ensemble space, $X^{b}$ are the prior ensemble perturbations of the state variable, $M^{b}$ is similar to $X^{b}$ but for the model-predicted measurements, $m^{o}$ are SWOT measurements, $m^{b}$ are the model-predicted measurements, and $R$ is the measurement error covariance matrix.
+ The matrix $P^{a}$ can be written as 
+ $$P^{a} = [Y^{b~T} R^{-1} Y^{b} + (k-1)I]^{-1}$$
+ while the posterior ensemble perturbations are given by 
+ $$X^{a} = X^{b} [(k-1) P^{a}]^{1/2}$$
+
+*** Data requirements
+ SADS operates on either SWOT reaches or nodes, and requires reach-averaged height, and optionally width, and slope, along with estimates of the uncertainties of each. It also requires an estimate of the prior distribution of the mean annual flow (Q), roughness coefficient (n), bankfull depth (z) and width (w). The prior flow is used for defining the boundary conditions for the GVF model.
+
+*** Parameter estimation
+
+ The posterior distribution of all the parameters in the model can be estimated by the proposed algorithm by augmenting the state vector that comprises of Q at its base formulation.
+
+** Validation
+
+ The SADS algorithm did not participate in the original Pepsi Challenge study and therefore it has not been validated. However the methodology components, i.e. gradually-varied flow model and LETKF, have been established and validated in independent studies. Therefore we expect that the proposed algorithm will be competitive in terms of performance when compared with other discharge estimation algorithms.
+
+** Implementation
+
+ We envision employing SADS over all reaches in the SWOT a priori reach database. We will identify stress cases during pre-launch activities, and depending on the results we will flag reaches where the algorithm is not expected to perform well. The GVF model code was initially developed for a previous SWOT-related study (Mersel et al., 2013), while the LETKF code has been developed as part of a SWOT Science Team project.  We expect that we will use approximately one year of SWOT data to estimate the unknown parameters, and then provide them to the SWOT project for all a-priori reaches. It will likely take 3-6 months to provide these parameters after data have been collected.
+
+** Management
+
+ Commensurate to the other algorithms, a set of global parameters will be generated within one year after SWOT launches. We do not expect the computational cost to be prohibitive, and in fact the LETKF algorithm lends itself to massive parallelization facilitating the algorithm implementation. Given the relative immaturity of the integrated algorithm, 1-2 post-doctoral researchers will be required to oversee the algorithm implementation, perform data analysis, evaluate the various diagnostics and handle any issues that might arise.
+
+** References
+
+ - Chow, V.T., 1955, November. Integrating the equation of gradually varied flow. In Proceedings of the American Society of Civil Engineers (Vol. 81, No. 11, pp. 1-32). ASCE.
+ - Hunt, B. R., E. J. Kostelich, and I. Szunyogh (2007), Efficient data assimilation for spatiotemporal chaos: A Local Ensemble Transform Kalman Filter, Phys. D, 230, 112–126. 
+ - Islam, A., Raghuwanshi, N.S., Singh, R. and Sen, D.J., 2005. Comparison of gradually varied flow computation algorithms for open-channel network. Journal of irrigation and drainage engineering, 131(5), pp.457-465.
+ - Mersel, M.K., Smith, L.C., Andreadis, K.M. and Durand, M.T., 2013. Estimation of river depth from remotely sensed hydraulic relationships. Water Resources Research, 49(6), pp.3165-3179.
+
+
