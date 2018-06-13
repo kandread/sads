@@ -1,6 +1,7 @@
 module Gvf
 
 using CrossSections
+using DifferentialEquations
 
 """Calculate the Froude number."""
 function froude(Q::Real, xs::CrossSection)
@@ -17,7 +18,7 @@ function dydx(y, p, x)
     pm = -1  # integrate upstream
     Q = p[1]
     xs = p[2][i]
-    xs.y = y
+    xs.y = abs(y)
     S0 = xs.S0
     Sf = xs.n^2 * Q^2 / (area(xs)^2 * radius(xs)^(4/3))
     Fr = froude(Q, xs)
@@ -35,7 +36,7 @@ Calculate a water surface profile by solving the Gradually-Varied-Flow equation.
 `b`: bottom width for each cross section
 """
 function gvf(Q, ybc, z0, S0, n, x, b)
-    c = [Rectangular(b[i], ybc, S0, n) for i in 1:length(x)]
+    c = [Rectangular(b[i], ybc, S0[i], n) for i in 1:length(x)]
     prob = ODEProblem(dydx, ybc, (x[1], x[end]), (Q, c))
     sol = solve(prob, Tsit5(), abstol=1e-2, saveat=x)
     h = sol.u[end:-1:1]

@@ -13,14 +13,14 @@ function sqrtenkf(A::Matrix, d::Vector, HA::Matrix, E::Matrix)
     U1, S1, V1 = svd(X0)
     X1 = U0 * diagm(S0p)' * U1
     y0 = X1' * (d - mean(HA, 2))
-    y2 = pinv(eye(N) + diagm(S1.^2)) * y0
+    y2 = pinv(eye(min(n, N)) + diagm(S1.^2)) * y0
     y3 = X1 * y2
     y4 = S' * y3
     Xma = mean(A, 2) .+ Ap * y4
-    X2 = pinv(sqrtm(eye(N) .+ diagm(S1.^2))) * X1' * S
-    U2, S2, V2 = svd(X2)
-    Xpa = Ap * V2 * sqrtm(eye(N) .- diagm(S2)' * diagm(S2))
-    return Xma .+ Xpa
+    # X2 = pinv(sqrtm(eye(N) .+ diagm(S1.^2))) * X1' * S
+    # U2, S2, V2 = svd(X2)
+    # Xpa = Ap * V2 * sqrtm(eye(N) .- diagm(S2)' * diagm(S2))
+    return Xma
 end
 
 export sqrtenkf
