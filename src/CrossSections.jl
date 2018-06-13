@@ -86,7 +86,7 @@ function radius(xs::CrossSection)
     return area(xs) / perimeter(xs)
 end
 
-export Rectangular, Trapezoidal, Triangular, Parabolic
+export Rectangular, Trapezoidal, Triangular, Parabolic, CrossSection
 
 export area, radius, depth, topwidth, perimeter
 
