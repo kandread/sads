@@ -13,6 +13,7 @@ end
 function dydx(y, p, x)
     i = trunc(Int, ceil(x / (6000 / length(p[1]))))
     i = i > 0 ? i : 1
+    # FIXME: Change this dynamically depending on whether the flow is subcritical or supercritical
     pm = -1  # integrate upstream
     Q = p[1]
     xs = p[2][i]
