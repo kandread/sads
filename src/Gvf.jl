@@ -12,13 +12,13 @@ end
 
 """Ordinary differential equation describing the Gradually-Varied-Flow model."""
 function dydx(y, p, x)
-    i = trunc(Int, ceil(x / (6000 / length(p[1]))))
+    i = trunc(Int, ceil(x / (p[3] / length(p[1]))))
     i = i > 0 ? i : 1
     # FIXME: Change this dynamically depending on whether the flow is subcritical or supercritical
     pm = -1  # integrate upstream
     Q = p[1]
     xs = p[2][i]
-    xs.y = abs(y)
+    xs.y = y
     S0 = xs.S0
     Sf = xs.n^2 * Q^2 / (area(xs)^2 * radius(xs)^(4/3))
     Fr = froude(Q, xs)
