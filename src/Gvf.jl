@@ -35,12 +35,39 @@ Calculate a water surface profile by solving the Gradually-Varied-Flow equation.
 `x`: downstream distance for each cross section
 `b`: bottom width for each cross section
 """
-function gvf(Q, ybc, z0, S0, n, x, b)
+function gvf(Q, ybc, S0, n, x, b)
     c = [Rectangular(b[i], ybc, S0[i], n) for i in 1:length(x)]
-    prob = ODEProblem(dydx, ybc, (x[1], x[end]), (Q, c))
-    sol = solve(prob, Tsit5(), abstol=1e-2, saveat=x)
-    h = sol.u[end:-1:1]
+    # c = [Trapezoidal(b[i], ybc, 1.0, S0, n) for i in 1:length(x)]
+    # prob = ODEProblem(dydx, ybc, (x[1], x[end]), (Q, c))
+    prob = DiscreteProblem(dydx, ybc, (x[1], x[end]), (Q, c, x[end]))
+    h = try
+        sol = solve(prob, Tsit5(), abstol=1e-2, saveat=x)
+        sol.u
+    catch
+        zeros(length(x)) - 9999.
+    end
     return h
+end
+
+"""Solve Gradually-Varied-Flow equation using the second-order
+predictor-corrector method."""
+function cp2(Q, ybc, S0, n, x, b)
+    abstol = 1e-2
+    y = zeros(length(x))
+    y[1] = ybc
+    c = [Rectangular(b[i], ybc, S0[i], n) for i in 1:length(x)]
+    f = dydx(ybc, (Q, c, x[end]), x[1])
+    for j in 2:length(x)
+        init = true
+        f1 = f
+        while (abs(f1 - f) > abstol || init)
+            init = false
+            f = f1
+            y[j] = y[j-1] + (f + f1) / 2 * (x[j] - x[j-1])
+            f1 = dydx(y[j], (Q, c, x[end]), x[j])
+        end
+    end
+    return y
 end
 
 export gvf
