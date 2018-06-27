@@ -23,8 +23,7 @@ function sqrtenkf(A::Matrix, d::Vector, HA::Matrix, E::Matrix)
     return Xma
 end
 
-function letkf(A::Matrix, d::Vector, HA::Matrix, E::Matrix, mapobs)
-    rho = 1.05
+function letkf(A::Matrix, d::Vector, HA::Matrix, E::Matrix, mapobs; rho=1.05)
     lg = length(d)
     mg, k = size(A)
     Yb_avg = mean(HA, 2)
@@ -32,7 +31,8 @@ function letkf(A::Matrix, d::Vector, HA::Matrix, E::Matrix, mapobs)
     Yb = HA .- Yb_avg
     Xb = A .- Xb_avg
     Aa = zeros(size(A))
-    R = (1 / (k - 1)) * (E .- mean(E, 2)) * (E .- mean(E, 2))'
+    # R = (1 / (k - 1)) * (E .- mean(E, 2)) * (E .- mean(E, 2))'
+    R = (1 / (k - 1)) * E * E'
     for i in 1:mg
         j = mapobs(i)
         Rl = zeros(length(j), length(j))
@@ -42,9 +42,10 @@ function letkf(A::Matrix, d::Vector, HA::Matrix, E::Matrix, mapobs)
         Pa = pinv((k-1) / rho * eye(k) + C * Ybl)
         Wa = real.(sqrtm((k-1) * Pa))
         wa = Pa * C * (d[j] .- Yb_avg[j])
-        Aa[i, :] = Xb[i, :] .* wa .+ Xb_avg[i]
+        Wa = Wa .+ reshape(wa, length(wa), 1)
+        Aa[i, :] = reshape(Xb[i, :],length(i),k) * Wa .+ Xb_avg[i]
     end
-    return median(Aa, 2)
+    return mean(Aa, 2)
 end
 
 export sqrtenkf, letkf
