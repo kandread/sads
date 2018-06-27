@@ -37,7 +37,7 @@ Calculate a water surface profile by solving the Gradually-Varied-Flow equation.
 """
 function gvf(Q, ybc, S0, n, x, b)
     c = [Rectangular(b[i], ybc, S0[i], n) for i in 1:length(x)]
-    # c = [Trapezoidal(b[i], ybc, 1.0, S0, n) for i in 1:length(x)]
+    # c = [Trapezoidal(b[i], ybc, 1.0, S0[i], n) for i in 1:length(x)]
     # prob = ODEProblem(dydx, ybc, (x[1], x[end]), (Q, c))
     prob = DiscreteProblem(dydx, ybc, (x[1], x[end]), (Q, c, x[end]))
     h = try
